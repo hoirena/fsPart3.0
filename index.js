@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors'); // Node's cors middleware
 const app = express(); // app - http server
 app.use(cors());
+app.use(express.static('build')); // built-in middleware from express; 
+// Whenever express gets an HTTP GET request it will first check if the build directory contains a file corresponding to the request's address
 
 const requestLogger = (request, response, next) => {
   console.log('Method:', request.method)
