@@ -25,13 +25,13 @@ let notes = [
     id: 1,
     content: "HTML is easy",
     date: "2022-05-30T17:30:31.098Z",
-    important: true,
+    important: false,
   },
   {
     id: 2,
     content: "Browser can execute only Javascript",
     date: "2022-05-30T18:39:34.091Z",
-    important: false,
+    important: true,
   },
   {
     id: 3,
@@ -78,7 +78,7 @@ app.post('/api/notes', (request, response) => {
   const body = request.body;
   if (!body.content) {
     return response.status(400).json({ 
-      error: 'content missing' 
+      error: 'Content missing' 
     });
   }
   const note = {
