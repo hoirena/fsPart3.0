@@ -1,6 +1,8 @@
+require('dotenv').config()
 const express = require('express');
 const cors = require('cors'); // Node's cors middleware
 const app = express(); // app - http server
+const Note = require('./models/note')
 app.use(cors());
 app.use(express.static('build')); // built-in middleware from express; 
 // Whenever express gets an HTTP GET request it will first check if the build directory contains a file corresponding to the request's address.
@@ -42,16 +44,11 @@ let notes = [
   },
 ];
 
-// const app = http.createServer((request, response) => {
-//   response.writeHead(200, { 'Content-Type': 'text/plain' });
-//   response.end(JSON.stringify(notes));
-// });
-
 app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>');
 });
 app.get('/api/notes', (request, response) => {
-    response.json(notes);
+    Note.find({}).then(notes => response.json(notes));
 });
 app.get('/api/notes/:id', (request, response) => {
     const id = Number(request.params.id);
@@ -94,7 +91,7 @@ app.post('/api/notes', (request, response) => {
 
 app.use(unknownEndpoint);
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

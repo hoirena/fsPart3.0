@@ -7,13 +7,14 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:ui": "rm -rf build && cd ../fsPart2/part2-notes && npm run build && cp -r build ../../fsPart3.0",
+    "build:ui": "@powershell Remove-Item -Recurse -Force build && cd ../fsPart2/part2-notes && npm run build && @powershell Copy-Item build -Recurse ../../fsPart3.0",
     "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push origin master"
   },
   "author": "Irena",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.1.4",
     "express": "^4.18.2",
     "mongoose": "^7.2.2"
   },
