@@ -3,10 +3,6 @@ const express = require('express');
 const cors = require('cors'); // Node's cors middleware
 const app = express(); // app - http server
 const Note = require('./models/note')
-app.use(cors());
-app.use(express.static('build')); // built-in middleware from express; 
-// Whenever express gets an HTTP GET request it will first check if the build directory contains a file corresponding to the request's address.
-// GET requests to the address .../api/notes will be handled by the backend's code.
 
 const requestLogger = (request, response, next) => {
   console.log('Method:', request.method)
@@ -16,33 +12,12 @@ const requestLogger = (request, response, next) => {
   next()
 }
 
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' })
-}
-
-app.use(express.json());
+app.use(cors());
+app.use(express.static('build')); // built-in middleware from express; 
+// Whenever express gets an HTTP GET request it will first check if the build directory contains a file corresponding to the request's address.
+// GET requests to the address .../api/notes will be handled by the backend's code.
+app.use(express.json()); // json parser "To access the data easily" vjerojatno za response.json(note)
 app.use(requestLogger);
-
-let notes = [
-  {
-    id: 1,
-    content: "HTML is easy",
-    date: "2022-05-30T17:30:31.098Z",
-    important: false,
-  },
-  {
-    id: 2,
-    content: "Browser can execute only Javascript",
-    date: "2022-05-30T18:39:34.091Z",
-    important: true,
-  },
-  {
-    id: 3,
-    content: "GET and POST are the most important methods of HTTP protocol",
-    date: "2022-05-30T19:20:14.298Z",
-    important: true,
-  },
-];
 
 app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>');
@@ -50,46 +25,69 @@ app.get('/', (request, response) => {
 app.get('/api/notes', (request, response) => {
     Note.find({}).then(notes => response.json(notes));
 });
-app.get('/api/notes/:id', (request, response) => {
-    const id = Number(request.params.id);
-    const note = notes.find(note => note.id === id);
-    if (note) {
-        response.json(note);
-    } else {
-        response.status(404).send(`Notes doesn't have note with an id ${id}`);
-    }
+app.get('/api/notes/:id', (request, response, next) => {
+    Note.findById(request.params.id).then(note => {
+      if (note) {
+        response.json(note)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error)) //{
+      // console.log(error);
+      // response.status(400).send({ error: 'malformatted id'})
+    // })
 });
-app.delete('/api/notes/:id', (request, response) => {
-    const id = Number(request.params.id);
-    notes = notes.filter(note => note.id !== id);
-    response.status(204).end();
+app.delete('/api/notes/:id', (request, response, next) => {
+    Note.findByIdAndRemove(request.params.id)
+      .then(result => {
+        console.log('result', result);
+        response.status(204).end()
+      })
+      .catch(error => next(error))
+    // const id = Number(request.params.id);
+    // notes = notes.filter(note => note.id !== id);
+    // response.status(204).end();
 });
-
-const generateId = () => {
-  const maxId = notes.length > 0
-    ? Math.max(...notes.map(n => n.id)) 
-    : 0
-  return maxId + 1;
-};
-
 app.post('/api/notes', (request, response) => {
   const body = request.body;
-  if (!body.content) {
+  if (body.content === undefined) {
     return response.status(400).json({ 
       error: 'Content missing' 
     });
   }
-  const note = {
-    id: generateId(),
+  const note = new Note({
     content: body.content,
-    date: new Date(),
     important: body.important || false,
-  }
-  notes = notes.concat(note);
-  response.json(note);
+  })
+  note.save().then(savedNote => response.json(savedNote))
 });
+app.put('/api/notes/:id', (request, response, next) => {
+  const body = request.body
+  const changedNote = {
+    content: body.content,
+    important: body.important
+  }
+  Note.findByIdAndUpdate(request.params.id, changedNote, { new: true })
+    .then(updatedNote => response.json(updatedNote))
+    .catch(error => next(error))
+})
 
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
 app.use(unknownEndpoint);
+
+const errorHandler = (error, request, response, next) => {
+  console.error('error.message', error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformated id' })
+  }
+
+  next(error)
+}
+app.use(errorHandler);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
