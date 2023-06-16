@@ -1,7 +1,7 @@
 require('dotenv').config()
-const express = require('express');
-const cors = require('cors'); // Node's cors middleware
-const app = express(); // app - http server
+const express = require('express')
+const cors = require('cors') // Node's cors middleware
+const app = express() // app - http server
 const Note = require('./models/note')
 
 const requestLogger = (request, response, next) => {
@@ -12,21 +12,22 @@ const requestLogger = (request, response, next) => {
   next()
 }
 
-app.use(cors());
-app.use(express.static('build')); // built-in middleware from express; 
+app.use(cors())
+app.use(express.static('build')) // built-in middleware from express
 // Whenever express gets an HTTP GET request it will first check if the build directory contains a file corresponding to the request's address.
 // GET requests to the address .../api/notes will be handled by the backend's code.
-app.use(express.json()); // json parser "To access the data easily" vjerojatno za response.json(note)
-app.use(requestLogger);
+app.use(express.json()) // json parser "To access the data easily" vjerojatno za response.json(note)
+app.use(requestLogger)
 
 app.get('/', (request, response) => {
-    response.send('<h1>Hello World!</h1>');
-});
+  response.send('<h1>Hello World!</h1>')
+})
 app.get('/api/notes', (request, response) => {
-    Note.find({}).then(notes => response.json(notes));
-});
+  Note.find({}).then(notes => response.json(notes))
+})
 app.get('/api/notes/:id', (request, response, next) => {
-    Note.findById(request.params.id).then(note => {
+  Note.findById(request.params.id)
+    .then(note => {
       if (note) {
         response.json(note)
       } else {
@@ -34,21 +35,21 @@ app.get('/api/notes/:id', (request, response, next) => {
       }
     })
     .catch(error => next(error))
-});
+})
 app.delete('/api/notes/:id', (request, response, next) => {
-    Note.findByIdAndRemove(request.params.id)
-      .then(result => {
-        console.log('result', result);
-        response.status(204).end()
-      })
-      .catch(error => next(error))
-});
+  Note.findByIdAndRemove(request.params.id)
+    .then(result => {
+      console.log('result', result)
+      response.status(204).end()
+    })
+    .catch(error => next(error))
+})
 app.post('/api/notes', (request, response, next) => {
-  const body = request.body;
+  const body = request.body
   if (body.content === undefined) {
-    return response.status(400).json({ 
-      error: 'Content missing' 
-    });
+    return response.status(400).json({
+      error: 'Content missing'
+    })
   }
   const note = new Note({
     content: body.content,
@@ -56,8 +57,8 @@ app.post('/api/notes', (request, response, next) => {
   })
   note.save()
     .then((savedNote) => response.json(savedNote))
-    .catch(error => next(error));
-});
+    .catch(error => next(error))
+})
 app.put('/api/notes/:id', (request, response, next) => {
   const { content, important } = request.body
   Note.findByIdAndUpdate(
@@ -72,7 +73,7 @@ app.put('/api/notes/:id', (request, response, next) => {
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
-app.use(unknownEndpoint);
+app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
   console.error('error.message: ', error.message)
@@ -85,9 +86,9 @@ const errorHandler = (error, request, response, next) => {
 
   next(error)
 }
-app.use(errorHandler);
+app.use(errorHandler)
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  console.log(`Server running on port ${PORT}`)
+})

@@ -8,7 +8,8 @@
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:ui": "@powershell Remove-Item -Recurse -Force build && cd ../fsPart2/part2-notes && npm run build && @powershell Copy-Item build -Recurse ../../fsPart3.0",
-    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push origin master"
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push origin master",
+    "lint": "eslint ."
   },
   "author": "Irena",
   "license": "ISC",
@@ -19,6 +20,7 @@
     "mongoose": "^7.2.2"
   },
   "devDependencies": {
+    "eslint": "^8.42.0",
     "nodemon": "^2.0.20"
   }
 }
